@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#081b2d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Recording" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Recording Mobile App Prototype</title>
+  <style>
+    :root {
+      --bg: #040b12;
+      --shell: #081b2d;
+      --shell-2: #0d2942;
+      --panel: rgba(255,255,255,0.05);
+      --text: #ffffff;
+      --text-soft: rgba(255,255,255,0.72);
+      --text-dim: rgba(255,255,255,0.45);
+      --line: rgba(255,255,255,0.08);
+      --danger: #ff9f9f;
+      --accent: #b6d4ff;
+      --shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
+      --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(88, 143, 220, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(41, 81, 125, 0.22), transparent 24%),
+        linear-gradient(180deg, #03070c, #07131f);
+      color: var(--text);
+      font-family: Arial, "Microsoft JhengHei", "PingFang TC", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 18px 12px 36px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(10px);
+    }
+
+    .app-title-wrap h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .app-title-wrap p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .save-badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+
+    .install-btn {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #6f9fdd, #5f8fcc);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.16);
+    }
+
+    .install-btn.visible {
+      display: inline-flex;
+    }
+
+    .phone-shell {
+      position: relative;
+      min-height: calc(100vh - 110px);
+      max-height: 920px;
+      background: linear-gradient(180deg, var(--shell), var(--shell-2));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .phone-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 18%);
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 16px 12px;
+      background: linear-gradient(180deg, rgba(8,27,45,0.96), rgba(8,27,45,0.82));
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .avatar-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #78a9ed, #3a679e);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+    }
+
+    .top-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .top-title h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #c1d8ff;
+      letter-spacing: 0.04em;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    .menu-dropdown {
+      position: absolute;
+      top: 62px;
+      right: 16px;
+      min-width: 190px;
+      background: rgba(6, 24, 39, 0.98);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+      padding: 8px;
+      display: none;
+      z-index: 30;
+      backdrop-filter: blur(12px);
+    }
+
+    .menu-dropdown.active {
+      display: block;
+    }
+
+    .menu-info {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--text-soft);
+      word-break: break-word;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 6px;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px 16px 28px;
+      min-height: calc(100vh - 210px);
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .search-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .search-wrap::before {
+      content: "⌕";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(0,0,0,0.55);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .search {
+      width: 100%;
+      height: 44px;
+      border: 0;
+      outline: none;
+      padding: 0 14px 0 36px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.86);
+      color: #111;
+      font-size: 15px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stat-card .label {
+      display: block;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .stat-card strong {
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card,
+    .list-item,
+    .add-btn,
+    .toolbar-btn,
+    .menu-item,
+    .modal-btn {
+      border: 0;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    .card:hover,
+    .list-item:hover,
+    .add-btn:hover,
+    .toolbar-btn:hover,
+    .menu-item:hover,
+    .modal-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+    }
+
+    .card {
+      min-height: 136px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #3a6ba1, #2f6297);
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      text-align: center;
+      word-break: break-word;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card.active {
+      outline: 2px solid rgba(255,255,255,0.5);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.08), 0 14px 26px rgba(0,0,0,0.2);
+    }
+
+    .list-item {
+      min-height: 58px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #a7c2ee, #94b4e6);
+      color: #ffffff;
+      padding: 12px 14px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      word-break: break-word;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .list-item.active {
+      outline: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .add-btn {
+      min-height: 58px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #8d97a2, #747e89);
+      font-size: 28px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .section-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 22px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .section-card h3 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: #b6d1ff;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .title-input,
+    .text-input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .title-input {
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #a7c2ee, #94b4e6);
+      padding: 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .text-input {
+      min-height: 170px;
+      resize: vertical;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      padding: 14px;
+      font-size: 16px;
+      line-height: 1.65;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .text-input.large {
+      min-height: 270px;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .toolbar-btn {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .toolbar-btn.primary {
+      background: linear-gradient(180deg, #6f9fdd, #5f8fcc);
+    }
+
+    .empty-note {
+      padding: 20px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px dashed rgba(255,255,255,0.12);
+      color: var(--text-dim);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .context-menu {
+      position: fixed;
+      z-index: 40;
+      min-width: 190px;
+      background: rgba(6, 24, 39, 0.98);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+      padding: 8px;
+      display: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .context-menu.active {
+      display: block;
+    }
+
+    .menu-item {
+      width: 100%;
+      text-align: left;
+      border-radius: 12px;
+      background: transparent;
+      padding: 11px 12px;
+      font-size: 14px;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .menu-item.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .menu-item.danger {
+      color: var(--danger);
+    }
+
+    .fab-add {
+      position: fixed;
+      right: 24px;
+      bottom: 28px;
+      width: 58px;
+      height: 58px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #6f9fdd, #5f8fcc);
+      color: #ffffff;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+      z-index: 60;
+    }
+
+    .fab-add.visible {
+      display: inline-flex;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.58);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      background: linear-gradient(180deg, #0a2238, #071827);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      padding: 20px;
+    }
+
+    .modal h3 {
+      margin: 0 0 10px;
+      color: #c0d8ff;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .modal p {
+      margin: 0 0 14px;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      height: 46px;
+      border: 0;
+      outline: none;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      color: #111;
+      padding: 0 14px;
+      font-size: 15px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .modal-actions,
+    .account-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-btn {
+      min-width: 90px;
+      height: 42px;
+      border: 0;
+      border-radius: 14px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .modal-btn.cancel {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .modal-btn.confirm {
+      background: linear-gradient(180deg, #6f9fdd, #5f8fcc);
+    }
+
+    .account-current {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 460px) {
+      body { padding: 8px 0 22px; }
+      .app { max-width: 100%; }
+      .app-header { margin: 0 10px 10px; border-radius: 18px; }
+      .phone-shell {
+        border-radius: 0;
+        min-height: calc(100vh - 90px);
+        max-height: none;
+        border-left: 0;
+        border-right: 0;
+      }
+      .grid { gap: 12px; }
+      .card { min-height: 120px; font-size: 22px; }
+      .list-item { font-size: 17px; }
+      .fab-add { right: 18px; bottom: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="app-header">
+      <div class="app-title-wrap">
+        <h1>Recording App</h1>
+        <p id="appSubtitle">手機單頁原型：主頁 → 第二頁 → 第三頁</p>
+      </div>
+      <div class="header-actions">
+        <button id="installBtn" class="install-btn" type="button">Install</button>
+        <div id="saveStatus" class="save-badge">LOCAL</div>
+      </div>
+    </section>
+
+    <section class="phone-shell">
+      <div class="top-bar">
+        <button id="avatarBtn" class="avatar-btn" type="button">?</button>
+        <div class="top-title">
+          <h2 id="navTitle">Recording</h2>
+        </div>
+        <button id="moreBtn" class="icon-btn" type="button">⋯</button>
+        <div id="menuDropdown" class="menu-dropdown">
+          <div id="menuEmailInfo" class="menu-info">未登入</div>
+          <button id="menuLoginBtn" class="menu-item" type="button">登入 email</button>
+          <button id="menuLogoutBtn" class="menu-item danger" type="button">登出</button>
+          <div id="menuLangInfo" class="menu-info" style="margin-top:6px;">語言</div>
+          <button class="menu-item lang-option" type="button" data-lang="zh-Hant">中文（繁體）</button>
+          <button class="menu-item lang-option" type="button" data-lang="zh-Hans">中文（簡體）</button>
+          <button class="menu-item lang-option" type="button" data-lang="en">English</button>
+          <button class="menu-item lang-option" type="button" data-lang="ja">日本語</button>
+        </div>
+      </div>
+
+      <section id="screen-home" class="screen active">
+        <div class="search-wrap">
+          <input id="globalSearch" class="search" type="text" placeholder="搜尋主頁分類或第二頁項目" />
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><span id="labelGroups" class="label">GROUPS</span><strong id="groupCount">0</strong></div>
+          <div class="stat-card"><span id="labelItems" class="label">ITEMS</span><strong id="itemCount">0</strong></div>
+          <div class="stat-card"><span id="labelCurrent" class="label">CURRENT</span><strong id="currentGroupStat">HOME</strong></div>
+        </div>
+        <div id="groupGrid" class="grid"></div>
+      </section>
+
+      <section id="screen-list" class="screen">
+        <div class="search-wrap">
+          <input id="itemSearch" class="search" type="text" placeholder="搜尋第二頁選項" />
+        </div>
+        <div id="listHeader" class="section-card"></div>
+        <div id="listStack" class="list"></div>
+      </section>
+
+      <section id="screen-detail" class="screen">
+        <input id="detailTitle" class="title-input" type="text" placeholder="標題" />
+        <div class="section-card">
+          <h3 id="requireLabel">REQUIRE</h3>
+          <textarea id="detailRequire" class="text-input" placeholder="輸入需求內容"></textarea>
+        </div>
+        <div class="section-card">
+          <h3 id="recordingLabel">RECORDING</h3>
+          <textarea id="detailRecording" class="text-input large" placeholder="輸入紀錄內容"></textarea>
+        </div>
+        <div class="actions-bar">
+          <button id="exportJsonBtn" class="toolbar-btn" type="button">匯出 JSON</button>
+          <button id="importJsonBtn" class="toolbar-btn primary" type="button">匯入 JSON</button>
+          <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <button id="fabAddBtn" class="fab-add" type="button">+</button>
+
+  <div id="contextMenu" class="context-menu"></div>
+
+  <div id="nameModalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="nameModalTitle">命名</h3>
+      <p id="nameModalDesc">請輸入名稱。</p>
+      <input id="nameModalInput" class="modal-input" type="text" placeholder="請輸入名稱" />
+      <div class="modal-actions">
+        <button id="nameModalCancel" class="modal-btn cancel" type="button">取消</button>
+        <button id="nameModalConfirm" class="modal-btn confirm" type="button">確認</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="accountModalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="accountModalTitle">登入 email</h3>
+      <div id="accountCurrent" class="account-current">目前未登入</div>
+      <input id="accountEmailInput" class="modal-input" type="email" placeholder="輸入 email 登入" />
+      <div class="account-actions">
+        <button id="accountLoginBtn" class="modal-btn confirm" type="button">登入 / 切換</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_STORAGE_KEY = 'recording-mobile-app-v1';
+    const ACCOUNT_LAST_KEY = 'recording-mobile-last-account';
+    const LANG_STORAGE_KEY = 'recording-mobile-ui-lang';
+    const PWA_DISMISSED_KEY = 'recording-pwa-install-dismissed';
+
+    const I18N = {
+      'zh-Hant': {
+        installApp: '安裝 App',
+        installed: '已安裝',
+        offlineReady: '離線可用',
+        local: 'LOCAL',
+        noLogin: 'NO LOGIN',
+        saved: 'SAVED',
+        exported: 'EXPORTED',
+        imported: 'IMPORTED',
+        copied: 'COPIED',
+        account: 'ACCOUNT',
+        logoutStatus: 'LOGOUT',
+        appSubtitle: '手機單頁原型：主頁 → 第二頁 → 第三頁',
+        notLoggedIn: '未登入',
+        loginEmail: '登入 email',
+        logout: '登出',
+        language: '語言',
+        homeSearchPlaceholder: '搜尋主頁分類或第二頁項目',
+        itemSearchPlaceholder: '搜尋第二頁選項',
+        statsGroups: 'GROUPS',
+        statsItems: 'ITEMS',
+        statsCurrent: 'CURRENT',
+        statsHome: 'HOME',
+        statsAccount: 'ACCOUNT',
+        statsNone: 'NONE',
+        noHomeSearchResult: '沒有符合搜尋條件的主頁分類',
+        noGroupHint: '請先從主頁建立分類',
+        noItemSearchResult: '沒有符合搜尋條件的第二頁選項',
+        noItems: '目前沒有第二頁選項',
+        require: '需求',
+        recording: '紀錄',
+        detailPlaceholder: '請先從第二頁選擇項目',
+        detailTitlePlaceholder: '標題',
+        requirePlaceholder: '輸入需求內容',
+        recordingPlaceholder: '輸入紀錄內容',
+        exportJson: '匯出 JSON',
+        importJson: '匯入 JSON',
+        modalCancel: '取消',
+        modalConfirm: '確認',
+        accountTitle: '登入 email',
+        accountCurrentLoggedIn: '目前登入：{email}',
+        accountCurrentLoggedOut: '目前未登入',
+        accountInputPlaceholder: '輸入 email 登入',
+        accountLoginSwitch: '登入 / 切換',
+        addHomeTitle: '新增主頁面選項',
+        addHomeDesc: '請輸入主頁面分類名稱。',
+        addHomePlaceholder: '輸入分類名稱',
+        addItemTitle: '新增第二頁面選項',
+        addItemDesc: '請輸入第二頁面選項名稱。',
+        addItemPlaceholder: '輸入項目名稱',
+        renameHomeTitle: '重新命名主頁面選項',
+        renameHomeDesc: '請輸入新的分類名稱。',
+        renameHomePlaceholder: '輸入新名稱',
+        renameItemTitle: '重新命名第二頁面選項',
+        renameItemDesc: '請輸入新的項目名稱。',
+        renameItemPlaceholder: '輸入新名稱',
+        menuCopy: '複製',
+        menuPaste: '貼上（直接新增已複製的選項）',
+        menuRename: '重新命名',
+        menuDelete: '刪除',
+        invalidEmail: '請輸入有效 email',
+        importNeedLogin: '請先登入 email，才可將內容匯入個人帳戶',
+        importFailed: '匯入失敗，請確認 JSON 格式',
+        invalidJson: 'JSON 格式不正確，缺少 groups 陣列',
+        defaultRequire: '1. 目的\n2. 適用條件\n3. 判定標準\n4. 注意事項',
+        defaultRecording: '1. 現況描述\n2. 問題點 / 異常點\n3. 暫時對策\n4. 原因分析\n5. 改善對策\n6. 結果確認'
+      },
+      'zh-Hans': {
+        installApp: '安装 App',
+        installed: '已安装',
+        offlineReady: '离线可用',
+        local: 'LOCAL',
+        noLogin: 'NO LOGIN',
+        saved: 'SAVED',
+        exported: 'EXPORTED',
+        imported: 'IMPORTED',
+        copied: 'COPIED',
+        account: 'ACCOUNT',
+        logoutStatus: 'LOGOUT',
+        appSubtitle: '手机单页原型：主页 → 第二页 → 第三页',
+        notLoggedIn: '未登录',
+        loginEmail: '登录 email',
+        logout: '登出',
+        language: '语言',
+        homeSearchPlaceholder: '搜索主页分类或第二页项目',
+        itemSearchPlaceholder: '搜索第二页选项',
+        statsGroups: 'GROUPS',
+        statsItems: 'ITEMS',
+        statsCurrent: 'CURRENT',
+        statsHome: 'HOME',
+        statsAccount: 'ACCOUNT',
+        statsNone: 'NONE',
+        noHomeSearchResult: '没有符合搜索条件的主页分类',
+        noGroupHint: '请先从主页建立分类',
+        noItemSearchResult: '没有符合搜索条件的第二页选项',
+        noItems: '目前没有第二页选项',
+        require: '需求',
+        recording: '记录',
+        detailPlaceholder: '请先从第二页选择项目',
+        detailTitlePlaceholder: '标题',
+        requirePlaceholder: '输入需求内容',
+        recordingPlaceholder: '输入记录内容',
+        exportJson: '导出 JSON',
+        importJson: '导入 JSON',
+        modalCancel: '取消',
+        modalConfirm: '确认',
+        accountTitle: '登录 email',
+        accountCurrentLoggedIn: '当前登录：{email}',
+        accountCurrentLoggedOut: '当前未登录',
+        accountInputPlaceholder: '输入 email 登录',
+        accountLoginSwitch: '登录 / 切换',
+        addHomeTitle: '新增主页面选项',
+        addHomeDesc: '请输入主页面分类名称。',
+        addHomePlaceholder: '输入分类名称',
+        addItemTitle: '新增第二页面选项',
+        addItemDesc: '请输入第二页面选项名称。',
+        addItemPlaceholder: '输入项目名称',
+        renameHomeTitle: '重新命名主页面选项',
+        renameHomeDesc: '请输入新的分类名称。',
+        renameHomePlaceholder: '输入新名称',
+        renameItemTitle: '重新命名第二页面选项',
+        renameItemDesc: '请输入新的项目名称。',
+        renameItemPlaceholder: '输入新名称',
+        menuCopy: '复制',
+        menuPaste: '粘贴（直接新增已复制的选项）',
+        menuRename: '重新命名',
+        menuDelete: '删除',
+        invalidEmail: '请输入有效 email',
+        importNeedLogin: '请先登录 email，才可将内容导入个人账户',
+        importFailed: '导入失败，请确认 JSON 格式',
+        invalidJson: 'JSON 格式不正确，缺少 groups 数组',
+        defaultRequire: '1. 目的\n2. 适用条件\n3. 判定标准\n4. 注意事项',
+        defaultRecording: '1. 现况描述\n2. 问题点 / 异常点\n3. 暂时对策\n4. 原因分析\n5. 改善对策\n6. 结果确认'
+      },
+      'en': {
+        installApp: 'Install App',
+        installed: 'Installed',
+        offlineReady: 'Offline ready',
+        local: 'LOCAL',
+        noLogin: 'NO LOGIN',
+        saved: 'SAVED',
+        exported: 'EXPORTED',
+        imported: 'IMPORTED',
+        copied: 'COPIED',
+        account: 'ACCOUNT',
+        logoutStatus: 'LOGOUT',
+        appSubtitle: 'Single-page mobile prototype: Home → Page 2 → Page 3',
+        notLoggedIn: 'Not signed in',
+        loginEmail: 'Sign in email',
+        logout: 'Sign out',
+        language: 'Language',
+        homeSearchPlaceholder: 'Search home groups or page 2 items',
+        itemSearchPlaceholder: 'Search page 2 items',
+        statsGroups: 'GROUPS',
+        statsItems: 'ITEMS',
+        statsCurrent: 'CURRENT',
+        statsHome: 'HOME',
+        statsAccount: 'ACCOUNT',
+        statsNone: 'NONE',
+        noHomeSearchResult: 'No home groups match the search',
+        noGroupHint: 'Create a group from the home page first',
+        noItemSearchResult: 'No page 2 items match the search',
+        noItems: 'No page 2 items yet',
+        require: 'Require',
+        recording: 'Recording',
+        detailPlaceholder: 'Select an item from page 2 first',
+        detailTitlePlaceholder: 'Title',
+        requirePlaceholder: 'Enter requirement content',
+        recordingPlaceholder: 'Enter recording content',
+        exportJson: 'Export JSON',
+        importJson: 'Import JSON',
+        modalCancel: 'Cancel',
+        modalConfirm: 'Confirm',
+        accountTitle: 'Sign in email',
+        accountCurrentLoggedIn: 'Signed in: {email}',
+        accountCurrentLoggedOut: 'Not signed in',
+        accountInputPlaceholder: 'Enter email to sign in',
+        accountLoginSwitch: 'Sign in / Switch',
+        addHomeTitle: 'Add home option',
+        addHomeDesc: 'Enter a home group name.',
+        addHomePlaceholder: 'Enter group name',
+        addItemTitle: 'Add page 2 option',
+        addItemDesc: 'Enter a page 2 item name.',
+        addItemPlaceholder: 'Enter item name',
+        renameHomeTitle: 'Rename home option',
+        renameHomeDesc: 'Enter a new group name.',
+        renameHomePlaceholder: 'Enter new name',
+        renameItemTitle: 'Rename page 2 option',
+        renameItemDesc: 'Enter a new item name.',
+        renameItemPlaceholder: 'Enter new name',
+        menuCopy: 'Copy',
+        menuPaste: 'Paste (add copied option directly)',
+        menuRename: 'Rename',
+        menuDelete: 'Delete',
+        invalidEmail: 'Please enter a valid email',
+        importNeedLogin: 'Sign in with email before importing into a personal account',
+        importFailed: 'Import failed. Check the JSON format',
+        invalidJson: 'Invalid JSON format: missing groups array',
+        defaultRequire: '1. Purpose\n2. Conditions\n3. Acceptance criteria\n4. Notes',
+        defaultRecording: '1. Current status\n2. Issue / abnormal point\n3. Temporary action\n4. Root cause analysis\n5. Corrective action\n6. Result confirmation'
+      },
+      'ja': {
+        installApp: 'アプリをインストール',
+        installed: 'インストール済み',
+        offlineReady: 'オフライン対応',
+        local: 'LOCAL',
+        noLogin: 'NO LOGIN',
+        saved: 'SAVED',
+        exported: 'EXPORTED',
+        imported: 'IMPORTED',
+        copied: 'COPIED',
+        account: 'ACCOUNT',
+        logoutStatus: 'LOGOUT',
+        appSubtitle: 'モバイル単一ページ試作：ホーム → 第2ページ → 第3ページ',
+        notLoggedIn: '未ログイン',
+        loginEmail: 'メールでログイン',
+        logout: 'ログアウト',
+        language: '言語',
+        homeSearchPlaceholder: 'ホーム分類または第2ページ項目を検索',
+        itemSearchPlaceholder: '第2ページ項目を検索',
+        statsGroups: 'GROUPS',
+        statsItems: 'ITEMS',
+        statsCurrent: 'CURRENT',
+        statsHome: 'HOME',
+        statsAccount: 'ACCOUNT',
+        statsNone: 'NONE',
+        noHomeSearchResult: '検索条件に一致するホーム分類がありません',
+        noGroupHint: '先にホーム画面で分類を作成してください',
+        noItemSearchResult: '検索条件に一致する第2ページ項目がありません',
+        noItems: '第2ページ項目はまだありません',
+        require: '要件',
+        recording: '記録',
+        detailPlaceholder: '先に第2ページで項目を選択してください',
+        detailTitlePlaceholder: 'タイトル',
+        requirePlaceholder: '要件内容を入力',
+        recordingPlaceholder: '記録内容を入力',
+        exportJson: 'JSONを書き出す',
+        importJson: 'JSONを読み込む',
+        modalCancel: 'キャンセル',
+        modalConfirm: '確認',
+        accountTitle: 'メールでログイン',
+        accountCurrentLoggedIn: 'ログイン中：{email}',
+        accountCurrentLoggedOut: '未ログイン',
+        accountInputPlaceholder: 'ログインするメールを入力',
+        accountLoginSwitch: 'ログイン / 切替',
+        addHomeTitle: 'ホーム項目を追加',
+        addHomeDesc: 'ホーム分類名を入力してください。',
+        addHomePlaceholder: '分類名を入力',
+        addItemTitle: '第2ページ項目を追加',
+        addItemDesc: '第2ページ項目名を入力してください。',
+        addItemPlaceholder: '項目名を入力',
+        renameHomeTitle: 'ホーム項目を変更',
+        renameHomeDesc: '新しい分類名を入力してください。',
+        renameHomePlaceholder: '新しい名前を入力',
+        renameItemTitle: '第2ページ項目を変更',
+        renameItemDesc: '新しい項目名を入力してください。',
+        renameItemPlaceholder: '新しい名前を入力',
+        menuCopy: 'コピー',
+        menuPaste: '貼り付け（コピーした項目を直接追加）',
+        menuRename: '名前変更',
+        menuDelete: '削除',
+        invalidEmail: '有効な email を入力してください',
+        importNeedLogin: '個人アカウントへ読み込む前に email でログインしてください',
+        importFailed: '読み込み失敗。JSON形式を確認してください',
+        invalidJson: 'JSON形式が正しくありません。groups 配列がありません',
+        defaultRequire: '1. 目的\n2. 適用条件\n3. 判定基準\n4. 注意事項',
+        defaultRecording: '1. 現状説明\n2. 問題点 / 異常點\n3. 暫定対策\n4. 原因分析\n5. 改善対策\n6. 結果確認'
+      }
+    };
+
+    function makeDefaultData() {
+      return {
+        page: 'home',
+        search: '',
+        itemSearch: '',
+        selectedGroupId: 'a',
+        selectedItemId: 'a1',
+        groups: [
+          {
+            id: 'a',
+            name: 'a',
+            color: '#2f6297',
+            items: [
+              { id: 'a1', title: 'aa1', color: '#9ab9ea', require: 'adasdad', recording: 'asdaafafaf' },
+              { id: 'a2', title: 'aa2', color: '#9ab9ea', require: 'Requirement for aa2', recording: 'Recording content for aa2' },
+              { id: 'a3', title: 'aa3', color: '#9ab9ea', require: 'Requirement for aa3', recording: 'Recording content for aa3' },
+              { id: 'a4', title: 'aa4', color: '#9ab9ea', require: 'Requirement for aa4', recording: 'Recording content for aa4' }
+            ]
+          },
+          {
+            id: 'b',
+            name: 'b',
+            color: '#2f6297',
+            items: [
+              { id: 'b1', title: 'bb1', color: '#9ab9ea', require: 'Requirement for bb1', recording: 'Recording content for bb1' },
+              { id: 'b2', title: 'bb2', color: '#9ab9ea', require: 'Requirement for bb2', recording: 'Recording content for bb2' }
+            ]
+          },
+          {
+            id: 'c',
+            name: 'c',
+            color: '#2f6297',
+            items: [
+              { id: 'c1', title: 'cc1', color: '#9ab9ea', require: 'Requirement for cc1', recording: 'Recording content for cc1' }
+            ]
+          },
+          {
+            id: 'd',
+            name: 'd',
+            color: '#2f6297',
+            items: [
+              { id: 'd1', title: 'dd1', color: '#9ab9ea', require: 'Requirement for dd1', recording: 'Recording content for dd1' }
+            ]
+          }
+        ]
+      };
+    }
+
+    const state = {
+      deferredPrompt: null,
+      isInstalled: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true,
+      uiLang: localStorage.getItem(LANG_STORAGE_KEY) || 'zh-Hant',
+      accountEmail: '',
+      page: 'home',
+      search: '',
+      itemSearch: '',
+      selectedGroupId: 'a',
+      selectedItemId: 'a1',
+      copiedPayload: null,
+      longPressTimer: null,
+      longPressTriggered: false,
+      menuTarget: null,
+      modalMode: null,
+      groups: makeDefaultData().groups
+    };
+
+    const el = {
+      appSubtitle: document.getElementById('appSubtitle'),
+      saveStatus: document.getElementById('saveStatus'),
+      installBtn: document.getElementById('installBtn'),
+      avatarBtn: document.getElementById('avatarBtn'),
+      moreBtn: document.getElementById('moreBtn'),
+      menuDropdown: document.getElementById('menuDropdown'),
+      menuEmailInfo: document.getElementById('menuEmailInfo'),
+      menuLoginBtn: document.getElementById('menuLoginBtn'),
+      menuLogoutBtn: document.getElementById('menuLogoutBtn'),
+      menuLangInfo: document.getElementById('menuLangInfo'),
+      langOptionButtons: Array.from(document.querySelectorAll('.lang-option')),
+      navTitle: document.getElementById('navTitle'),
+      globalSearch: document.getElementById('globalSearch'),
+      itemSearch: document.getElementById('itemSearch'),
+      labelGroups: document.getElementById('labelGroups'),
+      labelItems: document.getElementById('labelItems'),
+      labelCurrent: document.getElementById('labelCurrent'),
+      groupCount: document.getElementById('groupCount'),
+      itemCount: document.getElementById('itemCount'),
+      currentGroupStat: document.getElementById('currentGroupStat'),
+      groupGrid: document.getElementById('groupGrid'),
+      listHeader: document.getElementById('listHeader'),
+      listStack: document.getElementById('listStack'),
+      detailTitle: document.getElementById('detailTitle'),
+      detailRequire: document.getElementById('detailRequire'),
+      detailRecording: document.getElementById('detailRecording'),
+      requireLabel: document.getElementById('requireLabel'),
+      recordingLabel: document.getElementById('recordingLabel'),
+      exportJsonBtn: document.getElementById('exportJsonBtn'),
+      importJsonBtn: document.getElementById('importJsonBtn'),
+      importJsonInput: document.getElementById('importJsonInput'),
+      fabAddBtn: document.getElementById('fabAddBtn'),
+      contextMenu: document.getElementById('contextMenu'),
+      nameModalBackdrop: document.getElementById('nameModalBackdrop'),
+      nameModalTitle: document.getElementById('nameModalTitle'),
+      nameModalDesc: document.getElementById('nameModalDesc'),
+      nameModalInput: document.getElementById('nameModalInput'),
+      nameModalCancel: document.getElementById('nameModalCancel'),
+      nameModalConfirm: document.getElementById('nameModalConfirm'),
+      accountModalBackdrop: document.getElementById('accountModalBackdrop'),
+      accountModalTitle: document.getElementById('accountModalTitle'),
+      accountCurrent: document.getElementById('accountCurrent'),
+      accountEmailInput: document.getElementById('accountEmailInput'),
+      accountLoginBtn: document.getElementById('accountLoginBtn'),
+      screenHome: document.getElementById('screen-home'),
+      screenList: document.getElementById('screen-list'),
+      screenDetail: document.getElementById('screen-detail')
+    };
+
+    function t(key, vars = {}) {
+      const pack = I18N[state.uiLang] || I18N['zh-Hant'];
+      const fallback = I18N['zh-Hant'];
+      let text = Object.prototype.hasOwnProperty.call(pack, key) ? pack[key] : (fallback[key] || key);
+      Object.keys(vars).forEach((name) => {
+        text = text.split('{' + name + '}').join(String(vars[name]));
+      });
+      return text;
+    }
+
+    function registerPwaServiceWorker() {
+      if (!('serviceWorker' in navigator)) return;
+      navigator.serviceWorker.register('sw.js').then(() => {
+        if (!state.isInstalled) {
+          setSaveStatus(t('offlineReady'), 1400);
+        }
+      }).catch(() => {});
+    }
+
+    function updateInstallButton() {
+      el.installBtn.textContent = state.isInstalled ? t('installed') : t('installApp');
+      const dismissed = localStorage.getItem(PWA_DISMISSED_KEY) === '1';
+      const canInstall = Boolean(state.deferredPrompt) && !state.isInstalled && !dismissed;
+      el.installBtn.classList.toggle('visible', canInstall || state.isInstalled);
+      el.installBtn.disabled = state.isInstalled;
+      el.installBtn.style.opacity = state.isInstalled ? '0.65' : '1';
+      el.installBtn.style.cursor = state.isInstalled ? 'default' : 'pointer';
+    }
+
+    async function triggerInstall() {
+      if (state.isInstalled) return;
+      if (!state.deferredPrompt) {
+        localStorage.setItem(PWA_DISMISSED_KEY, '1');
+        updateInstallButton();
+        return;
+      }
+      state.deferredPrompt.prompt();
+      const choice = await state.deferredPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        state.isInstalled = true;
+        localStorage.removeItem(PWA_DISMISSED_KEY);
+        setSaveStatus(t('installed'), 1400);
+      } else {
+        localStorage.setItem(PWA_DISMISSED_KEY, '1');
+      }
+      state.deferredPrompt = null;
+      updateInstallButton();
+    }
+
+    function setUiLanguage(lang) {
+      if (!I18N[lang]) return;
+      state.uiLang = lang;
+      localStorage.setItem(LANG_STORAGE_KEY, lang);
+      closeMenuDropdown();
+      render();
+    }
+
+    function getStorageKeyForAccount(email) {
+      const normalized = (email || 'guest').trim().toLowerCase();
+      return BASE_STORAGE_KEY + '::' + normalized;
+    }
+
+    function cloneDefaultData() {
+      return JSON.parse(JSON.stringify(makeDefaultData()));
+    }
+
+    function applyDataToState(data) {
+      const fallback = cloneDefaultData();
+      state.page = data && data.page ? data.page : fallback.page;
+      state.search = data && typeof data.search === 'string' ? data.search : fallback.search;
+      state.itemSearch = data && typeof data.itemSearch === 'string' ? data.itemSearch : fallback.itemSearch;
+      state.selectedGroupId = data && data.selectedGroupId ? data.selectedGroupId : fallback.selectedGroupId;
+      state.selectedItemId = data && data.selectedItemId ? data.selectedItemId : fallback.selectedItemId;
+      state.groups = data && Array.isArray(data.groups) && data.groups.length ? data.groups : fallback.groups;
+    }
+
+    function getSelectedGroup() {
+      return state.groups.find((group) => group.id === state.selectedGroupId) || state.groups[0] || null;
+    }
+
+    function getSelectedItem() {
+      const group = getSelectedGroup();
+      if (!group) return null;
+      return group.items.find((item) => item.id === state.selectedItemId) || group.items[0] || null;
+    }
+
+    function findGroupById(groupId) {
+      return state.groups.find((group) => group.id === groupId) || null;
+    }
+
+    function findItemById(itemId, groupId) {
+      const group = groupId ? findGroupById(groupId) : getSelectedGroup();
+      if (!group) return null;
+      return group.items.find((item) => item.id === itemId) || null;
+    }
+
+    function getMenuTargetRef() {
+      if (!state.menuTarget) return null;
+      if (state.menuTarget.type === 'group') return findGroupById(state.menuTarget.id);
+      if (state.menuTarget.type === 'item') return findItemById(state.menuTarget.id, state.menuTarget.groupId);
+      return null;
+    }
+
+    function getFilteredGroups() {
+      if (!state.search.trim()) return state.groups;
+      const keyword = state.search.trim().toLowerCase();
+      return state.groups.filter((group) => {
+        const inGroup = group.name.toLowerCase().includes(keyword);
+        const inItems = group.items.some((item) => item.title.toLowerCase().includes(keyword));
+        return inGroup || inItems;
+      });
+    }
+
+    function getFilteredItems() {
+      const group = getSelectedGroup();
+      if (!group) return [];
+      if (!state.itemSearch.trim()) return group.items;
+      const keyword = state.itemSearch.trim().toLowerCase();
+      return group.items.filter((item) => item.title.toLowerCase().includes(keyword));
+    }
+
+    function getTotalItems() {
+      return state.groups.reduce((sum, group) => sum + group.items.length, 0);
+    }
+
+    function setSaveStatus(text, timeout = 0) {
+      el.saveStatus.textContent = text;
+      clearTimeout(window.__saveStatusTimer);
+      if (timeout > 0) {
+        window.__saveStatusTimer = setTimeout(() => {
+          el.saveStatus.textContent = t('local');
+        }, timeout);
+      }
+    }
+
+    function persistState() {
+      if (!state.accountEmail) {
+        setSaveStatus(t('noLogin'), 1100);
+        return;
+      }
+      localStorage.setItem(getStorageKeyForAccount(state.accountEmail), JSON.stringify({
+        page: state.page,
+        search: state.search,
+        itemSearch: state.itemSearch,
+        selectedGroupId: state.selectedGroupId,
+        selectedItemId: state.selectedItemId,
+        groups: state.groups
+      }));
+      localStorage.setItem(ACCOUNT_LAST_KEY, state.accountEmail);
+      setSaveStatus(t('saved'), 1100);
+    }
+
+    function hydrateState() {
+      try {
+        const rememberedEmail = localStorage.getItem(ACCOUNT_LAST_KEY) || '';
+        if (!rememberedEmail) {
+          applyDataToState(cloneDefaultData());
+          return;
+        }
+        state.accountEmail = rememberedEmail;
+        const raw = localStorage.getItem(getStorageKeyForAccount(rememberedEmail));
+        if (!raw) {
+          applyDataToState(cloneDefaultData());
+          return;
+        }
+        applyDataToState(JSON.parse(raw));
+      } catch {
+        applyDataToState(cloneDefaultData());
+      }
+    }
+
+    function normalizeImportedData(parsed) {
+      if (!parsed || !Array.isArray(parsed.groups)) {
+        throw new Error(t('invalidJson'));
+      }
+      const groups = parsed.groups.map((group, groupIndex) => ({
+        id: group.id || ('group-import-' + Date.now() + '-' + groupIndex),
+        name: group.name || ('group-' + (groupIndex + 1)),
+        color: group.color || '#2f6297',
+        items: Array.isArray(group.items)
+          ? group.items.map((item, itemIndex) => ({
+              id: item.id || ('item-import-' + Date.now() + '-' + groupIndex + '-' + itemIndex),
+              title: item.title || ('item-' + (itemIndex + 1)),
+              color: item.color || '#9ab9ea',
+              require: item.require || '',
+              recording: item.recording || ''
+            }))
+          : []
+      }));
+      return {
+        page: parsed.page || 'home',
+        search: parsed.search || '',
+        itemSearch: parsed.itemSearch || '',
+        selectedGroupId: parsed.selectedGroupId || (groups[0] ? groups[0].id : ''),
+        selectedItemId: parsed.selectedItemId || (groups[0] && groups[0].items[0] ? groups[0].items[0].id : ''),
+        groups
+      };
+    }
+
+    function exportJson() {
+      const payload = {
+        accountEmail: state.accountEmail,
+        page: state.page,
+        search: state.search,
+        itemSearch: state.itemSearch,
+        selectedGroupId: state.selectedGroupId,
+        selectedItemId: state.selectedItemId,
+        groups: state.groups,
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const date = new Date();
+      const pad = (v) => String(v).padStart(2, '0');
+      link.href = url;
+      link.download = 'recording-app-' + date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate()) + '-' + pad(date.getHours()) + pad(date.getMinutes()) + pad(date.getSeconds()) + '.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setSaveStatus(t('exported'), 1200);
+    }
+
+    function importJsonFile(file) {
+      if (!file) return;
+      if (!state.accountEmail) {
+        alert(t('importNeedLogin'));
+        el.importJsonInput.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          const normalized = normalizeImportedData(parsed);
+          applyDataToState(normalized);
+          render();
+          persistState();
+          setSaveStatus(t('imported'), 1200);
+        } catch (error) {
+          alert(error && error.message ? error.message : t('importFailed'));
+        } finally {
+          el.importJsonInput.value = '';
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function getAvatarText() {
+      if (!state.accountEmail) return '?';
+      const first = state.accountEmail.trim().charAt(0).toUpperCase();
+      return first || '?';
+    }
+
+    function openAccountModal() {
+      closeMenuDropdown();
+      el.accountCurrent.textContent = state.accountEmail ? t('accountCurrentLoggedIn', { email: state.accountEmail }) : t('accountCurrentLoggedOut');
+      el.accountEmailInput.value = state.accountEmail || '';
+      el.accountModalBackdrop.classList.add('active');
+      setTimeout(() => el.accountEmailInput.focus(), 10);
+    }
+
+    function closeAccountModal() {
+      el.accountModalBackdrop.classList.remove('active');
+    }
+
+    function loginAccount() {
+      const email = el.accountEmailInput.value.trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        alert(t('invalidEmail'));
+        return;
+      }
+      state.accountEmail = email;
+      localStorage.setItem(ACCOUNT_LAST_KEY, email);
+      const raw = localStorage.getItem(getStorageKeyForAccount(email));
+      if (raw) {
+        try {
+          applyDataToState(JSON.parse(raw));
+        } catch {
+          applyDataToState(cloneDefaultData());
+        }
+      } else {
+        applyDataToState(cloneDefaultData());
+        persistState();
+      }
+      closeAccountModal();
+      render();
+      setSaveStatus(t('account'), 1200);
+    }
+
+    function logoutAccount() {
+      state.accountEmail = '';
+      applyDataToState(cloneDefaultData());
+      localStorage.removeItem(ACCOUNT_LAST_KEY);
+      closeMenuDropdown();
+      render();
+      setSaveStatus(t('logoutStatus'), 1200);
+    }
+
+    function openMenuDropdown() {
+      el.menuDropdown.classList.add('active');
+      el.menuEmailInfo.textContent = state.accountEmail || t('notLoggedIn');
+    }
+
+    function closeMenuDropdown() {
+      el.menuDropdown.classList.remove('active');
+    }
+
+    function toggleMenuDropdown() {
+      if (el.menuDropdown.classList.contains('active')) closeMenuDropdown();
+      else openMenuDropdown();
+    }
+
+    function syncHistoryState() {
+      const marker = { page: state.page, groupId: state.selectedGroupId, itemId: state.selectedItemId };
+      const prev = window.history.state;
+      if (!prev || prev.page !== marker.page || prev.groupId !== marker.groupId || prev.itemId !== marker.itemId) {
+        window.history.pushState(marker, '');
+      }
+    }
+
+    function openPage(page, pushHistory = true) {
+      state.page = page;
+      render();
+      persistState();
+      if (pushHistory) syncHistoryState();
+    }
+
+    function setSelectedGroup(id, navigate = true) {
+      state.selectedGroupId = id;
+      const group = getSelectedGroup();
+      state.selectedItemId = group && group.items[0] ? group.items[0].id : '';
+      if (navigate) state.page = 'list';
+      render();
+      persistState();
+      if (navigate) syncHistoryState();
+    }
+
+    function setSelectedItem(id, navigate = true) {
+      hideContextMenu();
+      state.selectedItemId = id;
+      if (navigate) state.page = 'detail';
+      render();
+      persistState();
+      if (navigate) syncHistoryState();
+    }
+
+    function addGroupWithName(name) {
+      const cleanName = (name || '').trim();
+      if (!cleanName) return;
+      const newGroup = { id: 'group-' + Date.now(), name: cleanName, color: '#2f6297', items: [] };
+      state.groups.push(newGroup);
+      state.selectedGroupId = newGroup.id;
+      state.selectedItemId = '';
+      state.page = 'list';
+      render();
+      persistState();
+      syncHistoryState();
+    }
+
+    function addItemWithName(name) {
+      const group = getSelectedGroup();
+      const cleanName = (name || '').trim();
+      if (!group || !cleanName) return;
+      const newItem = {
+        id: 'item-' + Date.now(),
+        title: cleanName,
+        color: '#9ab9ea',
+        require: t('defaultRequire'),
+        recording: t('defaultRecording')
+      };
+      group.items.push(newItem);
+      state.selectedItemId = newItem.id;
+      state.page = 'detail';
+      render();
+      persistState();
+      syncHistoryState();
+    }
+
+    function openNameModal(mode, preset = '') {
+      hideContextMenu();
+      state.modalMode = mode;
+      const configMap = {
+        addGroup: { title: t('addHomeTitle'), desc: t('addHomeDesc'), placeholder: t('addHomePlaceholder') },
+        addItem: { title: t('addItemTitle'), desc: t('addItemDesc'), placeholder: t('addItemPlaceholder') },
+        renameGroup: { title: t('renameHomeTitle'), desc: t('renameHomeDesc'), placeholder: t('renameHomePlaceholder') },
+        renameItem: { title: t('renameItemTitle'), desc: t('renameItemDesc'), placeholder: t('renameItemPlaceholder') }
+      };
+      const config = configMap[mode];
+      if (!config) return;
+      el.nameModalTitle.textContent = config.title;
+      el.nameModalDesc.textContent = config.desc;
+      el.nameModalInput.placeholder = config.placeholder;
+      el.nameModalInput.value = preset;
+      el.nameModalBackdrop.classList.add('active');
+      setTimeout(() => el.nameModalInput.focus(), 10);
+    }
+
+    function closeNameModal() {
+      el.nameModalBackdrop.classList.remove('active');
+      state.modalMode = null;
+      el.nameModalInput.value = '';
+    }
+
+    function confirmNameModal() {
+      const value = el.nameModalInput.value.trim();
+      if (!value) return;
+      if (state.modalMode === 'addGroup') addGroupWithName(value);
+      if (state.modalMode === 'addItem') addItemWithName(value);
+      if (state.modalMode === 'renameGroup' && state.menuTarget) {
+        const target = getMenuTargetRef();
+        if (target) target.name = value;
+      }
+      if (state.modalMode === 'renameItem' && state.menuTarget) {
+        const target = getMenuTargetRef();
+        if (target) target.title = value;
+      }
+      closeNameModal();
+      render();
+      persistState();
+    }
+
+    function copyTarget() {
+      const target = getMenuTargetRef();
+      if (!target || !state.menuTarget) return;
+      state.copiedPayload = { type: state.menuTarget.type, data: JSON.parse(JSON.stringify(target)) };
+      hideContextMenu();
+      setSaveStatus(t('copied'), 900);
+    }
+
+    function pasteTarget() {
+      if (!state.copiedPayload || !state.menuTarget) return;
+      if (state.menuTarget.type === 'group') {
+        if (state.copiedPayload.type !== 'group') return;
+        const clone = JSON.parse(JSON.stringify(state.copiedPayload.data));
+        clone.id = 'group-' + Date.now();
+        clone.name = clone.name + ' copy';
+        clone.items = (clone.items || []).map((item, index) => ({ ...item, id: 'item-' + Date.now() + '-' + index }));
+        state.groups.push(clone);
+        state.selectedGroupId = clone.id;
+        state.selectedItemId = clone.items[0] ? clone.items[0].id : '';
+      } else {
+        if (state.copiedPayload.type !== 'item') return;
+        const group = getSelectedGroup();
+        if (!group) return;
+        const clone = JSON.parse(JSON.stringify(state.copiedPayload.data));
+        clone.id = 'item-' + Date.now();
+        clone.title = clone.title + ' copy';
+        group.items.push(clone);
+        state.selectedItemId = clone.id;
+      }
+      hideContextMenu();
+      render();
+      persistState();
+    }
+
+    function deleteTarget() {
+      if (!state.menuTarget) return;
+      if (state.menuTarget.type === 'group') {
+        state.groups = state.groups.filter((group) => group.id !== state.menuTarget.id);
+        state.selectedGroupId = state.groups[0] ? state.groups[0].id : '';
+        state.selectedItemId = state.groups[0] && state.groups[0].items[0] ? state.groups[0].items[0].id : '';
+        if (!state.groups.length) state.page = 'home';
+      } else {
+        const group = findGroupById(state.menuTarget.groupId);
+        if (group) {
+          group.items = group.items.filter((item) => item.id !== state.menuTarget.id);
+          if (state.selectedGroupId === group.id) {
+            state.selectedItemId = group.items[0] ? group.items[0].id : '';
+            if (!group.items.length) state.page = 'list';
+          }
+        }
+      }
+      hideContextMenu();
+      render();
+      persistState();
+    }
+
+    function renameTarget() {
+      if (!state.menuTarget) return;
+      const target = getMenuTargetRef();
+      if (!target) return;
+      const mode = state.menuTarget.type === 'group' ? 'renameGroup' : 'renameItem';
+      const preset = state.menuTarget.type === 'group' ? target.name : target.title;
+      openNameModal(mode, preset);
+    }
+
+    function showContextMenu(x, y, type, ref) {
+      state.menuTarget = type === 'group'
+        ? { type: 'group', id: ref.id }
+        : { type: 'item', id: ref.id, groupId: getSelectedGroup() ? getSelectedGroup().id : '' };
+      const pasteEnabled = Boolean(state.copiedPayload) && state.copiedPayload.type === type;
+      el.contextMenu.innerHTML = [
+        '<button class="menu-item" data-action="copy">' + t('menuCopy') + '</button>',
+        '<button class="menu-item ' + (pasteEnabled ? '' : 'disabled') + '" data-action="paste">' + t('menuPaste') + '</button>',
+        '<button class="menu-item" data-action="rename">' + t('menuRename') + '</button>',
+        '<button class="menu-item danger" data-action="delete">' + t('menuDelete') + '</button>'
+      ].join('');
+      el.contextMenu.style.left = Math.min(x, window.innerWidth - 210) + 'px';
+      el.contextMenu.style.top = Math.min(y, window.innerHeight - 250) + 'px';
+      el.contextMenu.classList.add('active');
+      el.contextMenu.querySelectorAll('[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const action = btn.getAttribute('data-action');
+          if (action === 'copy') copyTarget();
+          if (action === 'paste' && pasteEnabled) pasteTarget();
+          if (action === 'rename') renameTarget();
+          if (action === 'delete') deleteTarget();
+        });
+      });
+    }
+
+    function hideContextMenu() {
+      el.contextMenu.classList.remove('active');
+      el.contextMenu.innerHTML = '';
+      state.menuTarget = null;
+    }
+
+    function registerLongPress(element, type, ref) {
+      const start = (event) => {
+        if (event.type === 'mousedown' && event.button !== 0) return;
+        state.longPressTriggered = false;
+        clearTimeout(state.longPressTimer);
+        const point = event.touches && event.touches[0] ? event.touches[0] : event;
+        state.longPressTimer = setTimeout(() => {
+          state.longPressTriggered = true;
+          showContextMenu(point.clientX, point.clientY, type, ref);
+        }, 450);
+      };
+      const cancel = () => clearTimeout(state.longPressTimer);
+      element.addEventListener('mousedown', start);
+      element.addEventListener('touchstart', start, { passive: true });
+      ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach((evt) => element.addEventListener(evt, cancel));
+      element.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        showContextMenu(event.clientX, event.clientY, type, ref);
+      });
+    }
+
+    function updateSelectedItem(key, value) {
+      const item = getSelectedItem();
+      if (!item) return;
+      item[key] = value;
+    }
+
+    function renderHome() {
+      const groups = getFilteredGroups();
+      el.groupGrid.innerHTML = '';
+      if (!groups.length) {
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.style.gridColumn = '1 / -1';
+        note.textContent = t('noHomeSearchResult');
+        el.groupGrid.appendChild(note);
+      } else {
+        groups.forEach((group) => {
+          const button = document.createElement('button');
+          button.className = 'card' + (state.selectedGroupId === group.id ? ' active' : '');
+          button.type = 'button';
+          button.textContent = group.name;
+          button.style.backgroundColor = group.color || '#2f6297';
+          registerLongPress(button, 'group', group);
+          button.addEventListener('click', () => {
+            if (state.longPressTriggered) {
+              state.longPressTriggered = false;
+              return;
+            }
+            setSelectedGroup(group.id, true);
+          });
+          el.groupGrid.appendChild(button);
+        });
+      }
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn';
+      addBtn.type = 'button';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', () => openNameModal('addGroup'));
+      el.groupGrid.appendChild(addBtn);
+    }
+
+    function renderList() {
+      const group = getSelectedGroup();
+      const items = getFilteredItems();
+      el.listHeader.innerHTML = '';
+      el.listStack.innerHTML = '';
+      if (!group) {
+        el.listHeader.innerHTML = '<div class="empty-note">' + t('noGroupHint') + '</div>';
+        return;
+      }
+      el.listHeader.innerHTML = '<div style="font-size:22px;font-weight:700;color:#fff;word-break:break-word;text-align:center;">' + group.name + '</div>';
+      el.listHeader.style.borderLeft = '0';
+      el.listHeader.style.display = 'flex';
+      el.listHeader.style.alignItems = 'center';
+      el.listHeader.style.justifyContent = 'center';
+
+      if (!items.length) {
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.textContent = state.itemSearch.trim() ? t('noItemSearchResult') : t('noItems');
+        el.listStack.appendChild(note);
+      } else {
+        items.forEach((item) => {
+          const button = document.createElement('button');
+          button.className = 'list-item' + (state.selectedItemId === item.id ? ' active' : '');
+          button.type = 'button';
+          button.textContent = item.title;
+          button.style.backgroundColor = item.color || '#9ab9ea';
+          registerLongPress(button, 'item', item);
+          button.addEventListener('click', () => {
+            if (state.longPressTriggered) {
+              state.longPressTriggered = false;
+              return;
+            }
+            setSelectedItem(item.id, true);
+          });
+          el.listStack.appendChild(button);
+        });
+      }
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn';
+      addBtn.type = 'button';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', () => openNameModal('addItem'));
+      el.listStack.appendChild(addBtn);
+    }
+
+    function renderDetail() {
+      const item = getSelectedItem();
+      if (!item) {
+        el.detailTitle.value = '';
+        el.detailRequire.value = '';
+        el.detailRecording.value = '';
+        el.detailTitle.placeholder = t('detailPlaceholder');
+        return;
+      }
+      el.detailTitle.value = item.title;
+      el.detailTitle.style.backgroundColor = item.color || '#9ab9ea';
+      el.detailRequire.value = item.require || '';
+      el.detailRecording.value = item.recording || '';
+    }
+
+    function renderNav() {
+      el.avatarBtn.textContent = getAvatarText();
+      el.navTitle.textContent = 'Recording';
+      el.menuEmailInfo.textContent = state.accountEmail || t('notLoggedIn');
+      el.fabAddBtn.classList.toggle('visible', state.page === 'home' || state.page === 'list');
+    }
+
+    function renderScreens() {
+      el.screenHome.classList.toggle('active', state.page === 'home');
+      el.screenList.classList.toggle('active', state.page === 'list');
+      el.screenDetail.classList.toggle('active', state.page === 'detail');
+    }
+
+    function renderStats() {
+      const group = getSelectedGroup();
+      el.groupCount.textContent = String(state.groups.length);
+      el.itemCount.textContent = String(getTotalItems());
+      el.currentGroupStat.textContent = state.page === 'home'
+        ? (state.accountEmail ? t('statsAccount') : t('statsHome'))
+        : (group ? group.name : t('statsNone'));
+    }
+
+    function applyStaticTexts() {
+      document.documentElement.lang = state.uiLang;
+      el.appSubtitle.textContent = t('appSubtitle');
+      el.globalSearch.placeholder = t('homeSearchPlaceholder');
+      el.itemSearch.placeholder = t('itemSearchPlaceholder');
+      el.detailTitle.placeholder = t('detailTitlePlaceholder');
+      el.detailRequire.placeholder = t('requirePlaceholder');
+      el.detailRecording.placeholder = t('recordingPlaceholder');
+      el.exportJsonBtn.textContent = t('exportJson');
+      el.importJsonBtn.textContent = t('importJson');
+      el.menuLoginBtn.textContent = t('loginEmail');
+      el.menuLogoutBtn.textContent = t('logout');
+      el.menuLangInfo.textContent = t('language');
+      el.labelGroups.textContent = t('statsGroups');
+      el.labelItems.textContent = t('statsItems');
+      el.labelCurrent.textContent = t('statsCurrent');
+      el.requireLabel.textContent = t('require');
+      el.recordingLabel.textContent = t('recording');
+      el.nameModalCancel.textContent = t('modalCancel');
+      el.nameModalConfirm.textContent = t('modalConfirm');
+      el.accountModalTitle.textContent = t('accountTitle');
+      el.accountEmailInput.placeholder = t('accountInputPlaceholder');
+      el.accountLoginBtn.textContent = t('accountLoginSwitch');
+      updateInstallButton();
+      el.langOptionButtons.forEach((btn) => {
+        btn.classList.toggle('disabled', btn.dataset.lang === state.uiLang);
+      });
+      if (el.saveStatus.textContent === '' || el.saveStatus.textContent === 'LOCAL') {
+        el.saveStatus.textContent = t('local');
+      }
+    }
+
+    function render() {
+      const groupExists = state.groups.some((group) => group.id === state.selectedGroupId);
+      if (!groupExists && state.groups.length) {
+        state.selectedGroupId = state.groups[0].id;
+      }
+      const group = getSelectedGroup();
+      if (group) {
+        const itemExists = group.items.some((item) => item.id === state.selectedItemId);
+        if (!itemExists) {
+          state.selectedItemId = group.items[0] ? group.items[0].id : '';
+        }
+      }
+      applyStaticTexts();
+      el.globalSearch.value = state.search;
+      el.itemSearch.value = state.itemSearch;
+      renderNav();
+      renderScreens();
+      renderStats();
+      renderHome();
+      renderList();
+      renderDetail();
+    }
+
+    el.globalSearch.addEventListener('input', (event) => {
+      state.search = event.target.value;
+      render();
+    });
+
+    el.itemSearch.addEventListener('input', (event) => {
+      state.itemSearch = event.target.value;
+      render();
+    });
+
+    el.detailTitle.addEventListener('input', (event) => {
+      updateSelectedItem('title', event.target.value);
+      renderNav();
+      renderList();
+      persistState();
+    });
+
+    el.detailRequire.addEventListener('input', (event) => {
+      updateSelectedItem('require', event.target.value);
+      persistState();
+    });
+
+    el.detailRecording.addEventListener('input', (event) => {
+      updateSelectedItem('recording', event.target.value);
+      persistState();
+    });
+
+    el.installBtn.addEventListener('click', triggerInstall);
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      state.deferredPrompt = event;
+      localStorage.removeItem(PWA_DISMISSED_KEY);
+      updateInstallButton();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      state.isInstalled = true;
+      state.deferredPrompt = null;
+      localStorage.removeItem(PWA_DISMISSED_KEY);
+      updateInstallButton();
+      setSaveStatus(t('installed'), 1400);
+    });
+
+    el.avatarBtn.addEventListener('click', openAccountModal);
+    el.accountLoginBtn.addEventListener('click', loginAccount);
+    el.menuLoginBtn.addEventListener('click', openAccountModal);
+    el.menuLogoutBtn.addEventListener('click', logoutAccount);
+    el.accountEmailInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') loginAccount();
+    });
+
+    el.langOptionButtons.forEach((btn) => {
+      btn.addEventListener('click', () => setUiLanguage(btn.dataset.lang));
+    });
+
+    window.addEventListener('popstate', () => {
+      if (state.page === 'detail') {
+        openPage('list', false);
+      } else if (state.page === 'list') {
+        openPage('home', false);
+      }
+    });
+
+    el.moreBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleMenuDropdown();
+    });
+
+    el.fabAddBtn.addEventListener('click', () => {
+      if (state.page === 'home') openNameModal('addGroup');
+      if (state.page === 'list') openNameModal('addItem');
+    });
+
+    el.exportJsonBtn.addEventListener('click', exportJson);
+    el.importJsonBtn.addEventListener('click', () => el.importJsonInput.click());
+    el.importJsonInput.addEventListener('change', (event) => {
+      const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      importJsonFile(file);
+    });
+
+    el.nameModalCancel.addEventListener('click', closeNameModal);
+    el.nameModalConfirm.addEventListener('click', confirmNameModal);
+    el.nameModalInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') confirmNameModal();
+    });
+
+    el.nameModalBackdrop.addEventListener('click', (event) => {
+      if (event.target === el.nameModalBackdrop) closeNameModal();
+    });
+
+    el.accountModalBackdrop.addEventListener('click', (event) => {
+      if (event.target === el.accountModalBackdrop) closeAccountModal();
+    });
+
+    document.addEventListener('click', (event) => {
+      const clickedMoreButton = event.target === el.moreBtn || el.moreBtn.contains(event.target);
+      if (!el.menuDropdown.contains(event.target) && !clickedMoreButton) {
+        closeMenuDropdown();
+      }
+      if (!el.contextMenu.contains(event.target) && !el.nameModalBackdrop.contains(event.target) && !el.accountModalBackdrop.contains(event.target)) {
+        hideContextMenu();
+      }
+    });
+
+    hydrateState();
+    render();
+    registerPwaServiceWorker();
+    window.history.replaceState({ page: state.page, groupId: state.selectedGroupId, itemId: state.selectedItemId }, '');
+  </script>
+</body>
+</html>
